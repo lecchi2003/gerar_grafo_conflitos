@@ -13,6 +13,7 @@
 <svg class="icon-defs" aria-hidden="true" focusable="false">
   <symbol id="ic-novo" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M12 8.2v7.6M8.2 12h7.6"/></symbol>
   <symbol id="ic-mover" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><path d="M12 3l-2.8 2.8M12 3l2.8 2.8M12 21l-2.8-2.8M12 21l2.8-2.8M3 12l2.8-2.8M3 12l2.8 2.8M21 12l-2.8-2.8M21 12l-2.8 2.8"/></symbol>
+  <symbol id="ic-resize" viewBox="0 0 24 24"><path d="M9 4H4v5"/><path d="M15 4h5v5"/><path d="M9 20H4v-5"/><path d="M15 20h5v-5"/><path d="M4 4l5.2 5.2M20 4l-5.2 5.2M4 20l5.2-5.2M20 20l-5.2-5.2"/></symbol>
   <symbol id="ic-excluir" viewBox="0 0 24 24"><path d="M4 6.5h16M9.5 6.5V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v1.5"/><path d="M6.5 6.5l.9 12.1A2 2 0 0 0 9.4 20.5h5.2a2 2 0 0 0 2-1.9l.9-12.1"/><path d="M10.3 10.5v6M13.7 10.5v6"/></symbol>
   <symbol id="ic-novomapa" viewBox="0 0 24 24"><path d="M6 3.5h7l5 5v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z"/><path d="M13 3.5v5h5"/></symbol>
   <symbol id="ic-abrir" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h3.6l2 2.5H19a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
@@ -90,6 +91,8 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </span>
           </button>
+          <button class="ctl" data-action="resize" data-toggle="1" title="Redimensionar rótulo — arraste um canto (R)">
+            <span class="led"></span><svg><use href="#ic-resize"/></svg><b>Resize</b><kbd>R</kbd></button>
           <button class="ctl danger" data-action="excluir" data-toggle="1" title="Excluir ponto — clique no rótulo (Del)">
             <span class="led"></span><svg><use href="#ic-excluir"/></svg><b>Excluir</b><kbd>Del</kbd></button>
           <button class="ctl" data-action="pan" data-toggle="1" title="Navegar — arraste para mover a visão (Espaço)">
@@ -122,6 +125,8 @@
             <span class="led"></span><svg><use href="#ic-dado"/></svg><b>Solução gulosa</b></button>
           <button class="ctl" data-action="salvarSolucao" title="Salvar a última solução (gerada ou carregada) em .txt">
             <span class="led"></span><svg><use href="#ic-salvar"/></svg><b>Salvar solução</b></button>
+          <button class="ctl" data-action="estatisticas" title="Estatísticas do problema — instância (grafo) e solução aplicada">
+            <span class="led"></span><svg><use href="#ic-stats"/></svg><b>Estatísticas</b></button>
           <button class="ctl" data-action="carregarSolucao" title="Carregar Solução">
             <span class="led"></span><svg><use href="#ic-solucao"/></svg><b>Carregar solução</b></button>
           <button class="ctl" data-action="statsConflitos" title="Calcular conflitos sem exportar">
@@ -254,6 +259,7 @@
   <button role="menuitem" data-action="guloso"><svg><use href="#ic-dado"/></svg>Solução gulosa (gerar e visualizar)</button>
   <button role="menuitem" data-action="salvarSolucao"><svg><use href="#ic-salvar"/></svg>Salvar solução (.txt)</button>
   <button role="menuitem" data-action="carregarSolucao"><svg><use href="#ic-solucao"/></svg>Carregar solução...</button>
+  <button role="menuitem" data-action="estatisticas"><svg><use href="#ic-stats"/></svg>Estatísticas do problema...</button>
   <button role="menuitem" data-action="statsConflitos"><svg><use href="#ic-grafo"/></svg>Calcular conflitos</button>
   <button role="menuitem" data-action="salvarGrafo"><svg><use href="#ic-salvar"/></svg>Salvar grafo gerado (.txt)</button>
   <button role="menuitem" data-action="export"><svg><use href="#ic-export"/></svg>Exportar PNG</button>
@@ -340,6 +346,30 @@
     </footer>
   </div>
 
+  <div class="modal" id="modalStats" hidden role="dialog" aria-modal="true" aria-labelledby="epTitle">
+    <header class="modal-head">
+      <span class="mh-icon"><svg><use href="#ic-stats"/></svg></span>
+      <h3 id="epTitle">Estatísticas do problema</h3>
+      <button class="icon-btn" data-close><svg><use href="#ic-fechar"/></svg></button>
+    </header>
+    <div class="modal-body">
+      <section class="pblock">
+        <h4>Instância — grafo de conflitos</h4>
+        <dl class="kv" id="epInstancia"></dl>
+      </section>
+      <section class="pblock" id="epSolucaoWrap">
+        <h4>Solução aplicada</h4>
+        <dl class="kv" id="epSolucao"></dl>
+      </section>
+      <p class="note" id="epSemSolucao" hidden>Nenhuma solução aplicada —
+        gere a <b>Solução gulosa</b> ou carregue uma para ver as estatísticas dela.</p>
+    </div>
+    <footer class="modal-foot">
+      <span class="spacer"></span>
+      <button class="btn primary" data-close>Fechar</button>
+    </footer>
+  </div>
+
   <div class="modal wide" id="modalAjuda" hidden role="dialog" aria-modal="true" aria-labelledby="ajTitle">
     <header class="modal-head">
       <span class="mh-icon"><svg><use href="#ic-ajuda"/></svg></span>
@@ -410,6 +440,16 @@
                 rótulos em conflito e um vértice por ponto).</li>
           </ul>
 
+          <h4>Redimensionar rótulos</h4>
+          <ul class="file-formats">
+            <li>Com a ferramenta <b>Resize</b> (<kbd>R</kbd>), clique num <b>canto</b> do
+                rótulo e arraste — o lado oposto fica fixo e o rótulo cresce/diminui.</li>
+            <li>As <b>4 quadrantes</b> são recalculadas na hora; com o grafo desenhado,
+                as arestas são retraçadas automaticamente.</li>
+            <li>Tamanho mínimo: <b>20 × 12 px</b>; o rótulo não sai da folha.
+                <b>Ctrl+Z</b> desfaz o redimensionamento.</li>
+          </ul>
+
           <h4>Mover pontos</h4>
           <ul class="file-formats">
             <li>Com a ferramenta <b>Mover</b>, basta clicar <b>perto</b> do ponto
@@ -425,7 +465,7 @@
 
           <h4>Atalhos de teclado</h4>
           <ul class="shortcuts">
-            <li><kbd>N</kbd> novo ponto</li><li><kbd>M</kbd> mover</li>
+            <li><kbd>N</kbd> novo ponto</li><li><kbd>M</kbd> mover</li><li><kbd>R</kbd> resize</li>
             <li><kbd>Del</kbd> excluir</li><li><kbd>␣</kbd> navegar</li>
             <li><kbd>Ctrl</kbd>+<kbd>S</kbd> salvar</li><li><kbd>Ctrl</kbd>+<kbd>O</kbd> abrir</li>
             <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> desfazer</li><li><kbd>Ctrl</kbd>+<kbd>Y</kbd> refazer</li>

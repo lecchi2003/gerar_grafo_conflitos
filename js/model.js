@@ -97,6 +97,14 @@
       for (const r of this.rotulos) { r.x += dx; r.y += dy; }
     }
 
+    /* redimensiona a partir de um canto (a origem pode mudar) e
+       reconstrói as quadrantes a partir do novo retângulo           */
+    setRect(nx, ny, nw, nh) {
+      this.x = nx; this.y = ny;
+      this.width = nw; this.height = nh;
+      this._construir();
+    }
+
     getRotulo(i) { return this.rotulos[i]; }
 
     /* Ponto de ancoragem do vértice (canto externo do ponto) */
@@ -358,9 +366,94 @@
     };
   }
 
+  /* ---------------- Estatísticas do problema ----------------
+     Devolve métricas da instância (grafo de conflitos) e, se `selecoes`
+     (quadrante 0..3 por ponto) for informado, também da solução.        */
+  function estatisticasProblema(pontos, selecoes) {
+    const N = pontos.length;
+    const res = gerarGrafoConflitos(pontos);
+    const n = res.n, adj = res.adj;
+
+    const viz = new Array(n);
+    const grau = new Array(n);
+    let soma = 0, max = 0, min = Infinity, isolados = 0;
+    for (let i = 0; i < n; i++) {
+      const arr = [];
+      for (let j = 0; j < n; j++) if (adj[i][j]) arr.push(j);
+      viz[i] = arr; grau[i] = arr.length; soma += arr.length;
+      if (arr.length > max) max = arr.length;
+      if (arr.length < min) min = arr.length;
+      if (arr.length === 0) isolados++;
+    }
+    const arestas = res.conflitos;
+    const densidade = n > 1 ? (2 * arestas) / (n * (n - 1)) : 0;
+    const grauMedio = n ? soma / n : 0;
+
+    // componentes conexas (vértices isolados contam como componentes)
+    const comp = new Array(n).fill(0);
+    let componentes = 0;
+    for (let s = 0; s < n; s++) {
+      if (comp[s]) continue;
+      componentes++;
+      const pilha = [s]; comp[s] = componentes;
+      while (pilha.length) {
+        const u = pilha.pop();
+        for (const v of viz[u]) if (!comp[v]) { comp[v] = componentes; pilha.push(v); }
+      }
+    }
+
+    // conflitos incidentes por quadrante (cada aresta conta nos dois lados)
+    const confPorQuadrante = [0, 0, 0, 0];
+    for (let v = 0; v < n; v++) confPorQuadrante[v % 4] += grau[v];
+
+    const stats = {
+      pontos: N,
+      vertices: n,
+      arestas: arestas,
+      densidade: densidade,
+      grauMedio: grauMedio,
+      grauMax: max,
+      grauMin: min === Infinity ? 0 : min,
+      isolados: isolados,
+      componentes: componentes,
+      confPorQuadrante: confPorQuadrante
+    };
+
+    if (selecoes && selecoes.length === N) {
+      const escolhido = [];
+      const porQuadrante = [0, 0, 0, 0];
+      const confPonto = new Array(N).fill(0);
+      for (let i = 0; i < N; i++) {
+        escolhido.push(i * 4 + selecoes[i]);
+        porQuadrante[selecoes[i]]++;
+      }
+      let conflitos = 0;
+      const emConflito = new Set();
+      for (let a = 0; a < escolhido.length; a++) {
+        for (let b = a + 1; b < escolhido.length; b++) {
+          if (adj[escolhido[a]][escolhido[b]]) {
+            conflitos++;
+            emConflito.add(a); emConflito.add(b);
+            confPonto[a]++; confPonto[b]++;
+          }
+        }
+      }
+      let pior = { i: -1, conflitos: -1 };
+      for (let i = 0; i < N; i++) if (confPonto[i] > pior.conflitos) pior = { i, conflitos: confPonto[i] };
+      stats.solucao = {
+        conflitos: conflitos,
+        rotulosEmConflito: emConflito.size,
+        porQuadrante: porQuadrante,
+        pontosSemConflito: confPonto.filter((c) => c === 0).length,
+        piorPonto: pior
+      };
+    }
+    return stats;
+  }
+
   global.GDC = {
     Rotulo, Ponto, randomCor, corHSLtoRGB,
     gerarGrafoConflitos, grafoParaTexto, arestasParaSegmentos, adjParaArestas,
-    solucaoGulosa
+    solucaoGulosa, estatisticasProblema
   };
 })(typeof window !== 'undefined' ? window : globalThis);

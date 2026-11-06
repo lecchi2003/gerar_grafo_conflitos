@@ -504,6 +504,7 @@ input[type=range]::-moz-range-thumb{
 body.tool-novo   #canvas{ cursor:crosshair; }
 body.tool-excluir #canvas{ cursor:cell; }
 body.tool-mover  #canvas{ cursor:grab; }
+body.tool-resize #canvas{ cursor:nwse-resize; }
 body.panning .viewport{ cursor:grabbing; }
 body.panning #canvas{ cursor:grabbing; }
 

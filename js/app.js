@@ -40,7 +40,8 @@
       try { return localStorage.getItem('gdc.mover.semConfirmar') === '1'; }
       catch (e) { return false; }
     })(),                    // true = soltar o ponto move direto, sem modal
-    hover: -1
+    hover: -1,
+    hoverCorner: null         // canto sob o cursor na ferramenta resize (tl|tr|bl|br)
   };
 
   let preview = null;        // {x1,y1,cx,cy} — arrasto do "novo ponto"
@@ -103,7 +104,7 @@
   /* ---------------- modais ---------------- */
   function openModal(id) {
     $('overlay').hidden = false;
-    ['modalConfig', 'modalAleatorios', 'modalAjuda', 'modalConfirm']
+    ['modalConfig', 'modalAleatorios', 'modalAjuda', 'modalConfirm', 'modalStats']
       .forEach((m) => { $(m).hidden = (m !== id); });
   }
   function closeModal() {
@@ -241,6 +242,21 @@
     c.strokeStyle = 'rgba(46,230,255,.35)';
     c.lineWidth = 1;
     c.strokeRect(p.x - 6, p.y - 6, p.width + 12, p.height + 12);
+
+    // no modo Resize: os 4 cantos são "alças" — o do hover fica branco e maior
+    if (S.ferramenta === 'resize') {
+      const cantos = [['tl', p.x, p.y], ['tr', p.x + p.width, p.y],
+                      ['bl', p.x, p.y + p.height], ['br', p.x + p.width, p.y + p.height]];
+      for (const [id, cx, cy] of cantos) {
+        const ativo = S.hoverCorner === id;
+        const hs = ativo ? 11 : 7;
+        c.fillStyle = ativo ? '#ffffff' : '#2ee6ff';
+        c.shadowColor = '#2ee6ff';
+        c.shadowBlur = ativo ? 12 : 6;
+        c.fillRect(cx - hs / 2, cy - hs / 2, hs, hs);
+        c.shadowBlur = 0;
+      }
+    }
 
     // no modo Mover: alças nos 4 cantos + cruz no ponto de agarro
     if (S.ferramenta === 'mover') {
@@ -485,6 +501,24 @@
     }
     return -1;
   }
+  const CURSOR_CANTO = { tl: 'nwse-resize', br: 'nwse-resize', tr: 'nesw-resize', bl: 'nesw-resize' };
+  /* devolve {i, corner, d} do canto mais próximo dentro de `tol`, ou null */
+  function cornerHitTest(x, y, tol) {
+    let best = null;
+    for (let i = S.pontos.length - 1; i >= 0; i--) {
+      const p = S.pontos[i];
+      const cs = [
+        ['tl', p.x, p.y], ['tr', p.x + p.width, p.y],
+        ['bl', p.x, p.y + p.height], ['br', p.x + p.width, p.y + p.height]
+      ];
+      for (const [id, cx, cy] of cs) {
+        const d = Math.hypot(x - cx, y - cy);
+        if (d <= tol && (!best || d < best.d)) best = { i, corner: id, d };
+      }
+    }
+    return best;
+  }
+
   /* tolerâncias padrão: 10 px de tela para selecionar, 5 px para hover */
   function tolSelecao() { return 10 / S.zoom; }
   function tolHover() { return 5 / S.zoom; }
@@ -536,6 +570,18 @@
       }
       return;
     }
+    if (S.ferramenta === 'resize') {
+      const hit = cornerHitTest(pt.x, pt.y, tolSelecao());
+      if (hit) {
+        const p = S.pontos[hit.i];
+        drag = {
+          type: 'resize', i: hit.i, corner: hit.corner,
+          before: serializeState(), moved: false,
+          orig: { x: p.x, y: p.y, w: p.width, h: p.height }
+        };
+      }
+      return;
+    }
     // sem ferramenta: apenas atualiza o "hover"
   }
 
@@ -568,6 +614,37 @@
         if (nx !== p.x || ny !== p.y) { p.moveTo(nx, ny); drag.moved = true; recomputeSegments(); render(); }
         return;
       }
+      if (drag.type === 'resize') {
+        const pt = evtPt(e);
+        const p = S.pontos[drag.i];
+        const o = drag.orig;
+        const mx = clamp(pt.x, 0, S.largura_folha), my = clamp(pt.y, 0, S.altura_folha);
+        const MINW = 20, MINH = 12;
+        let nx = o.x, ny = o.y, nw = o.w, nh = o.h;
+        if (drag.corner === 'tl' || drag.corner === 'tr') {   // topo acompanha o mouse
+          ny = Math.min(Math.max(my, 0), o.y + o.h - MINH);
+          nh = o.y + o.h - ny;
+        }
+        if (drag.corner === 'bl' || drag.corner === 'br') {   // base acompanha o mouse
+          nh = Math.max(my - o.y, MINH);
+        }
+        if (drag.corner === 'tl' || drag.corner === 'bl') {   // esquerda acompanha o mouse
+          nx = Math.min(Math.max(mx, 0), o.x + o.w - MINW);
+          nw = o.x + o.w - nx;
+        }
+        if (drag.corner === 'tr' || drag.corner === 'br') {   // direita acompanha o mouse
+          nw = Math.max(mx - o.x, MINW);
+        }
+        if (nx !== p.x || ny !== p.y || nw !== p.width || nh !== p.height) {
+          p.setRect(nx, ny, nw, nh);
+          drag.moved = true;
+          recomputeSegments();
+          render();
+          $('sbHint').textContent = 'Rótulo: ' + Math.round(nw) + ' × ' + Math.round(nh) +
+            ' px em (' + Math.round(nx) + ', ' + Math.round(ny) + ')';
+        }
+        return;
+      }
     }
 
     // leituras
@@ -585,9 +662,23 @@
       const X = Math.round(pt.x), Y = Math.round(pt.y);
       $('sbCoords').textContent = 'Coordenadas: ' + X + ', ' + Y;
       $('vpCoords').textContent = 'X ' + String(X).padStart(4, '0') + ' · Y ' + String(Y).padStart(4, '0');
-      const i = hitTest(pt.x, pt.y, S.ferramenta ? tolSelecao() : tolHover());
-      if (i !== S.hover) { S.hover = i; render(); }
-    } else if (S.hover !== -1) { S.hover = -1; render(); }
+      if (S.ferramenta === 'resize') {
+        const hit = cornerHitTest(pt.x, pt.y, tolSelecao());
+        canvas.style.cursor = hit ? CURSOR_CANTO[hit.corner] : '';
+        const novoHover = hit ? hit.i : -1;
+        const cantoNovo = hit ? hit.corner : null;
+        if (novoHover !== S.hover || cantoNovo !== S.hoverCorner) {
+          S.hover = novoHover; S.hoverCorner = cantoNovo; render();
+        }
+      } else {
+        canvas.style.cursor = '';
+        S.hoverCorner = null;
+        const i = hitTest(pt.x, pt.y, S.ferramenta ? tolSelecao() : tolHover());
+        if (i !== S.hover) { S.hover = i; render(); }
+      }
+    } else if (S.hover !== -1 || S.hoverCorner) {
+      S.hover = -1; S.hoverCorner = null; canvas.style.cursor = ''; render();
+    }
   }
 
   function onUp(e) {
@@ -612,6 +703,23 @@
       }
       render(); updateHUD();
       setHint();
+      return;
+    }
+
+    if (drag.type === 'resize') {
+      const d = drag;
+      drag = null;
+      if (d.moved) {
+        const p = S.pontos[d.i];
+        commit(d.before);
+        toast('Rótulo #' + (d.i + 1) + ' redimensionado para ' +
+              Math.round(p.width) + ' × ' + Math.round(p.height) + ' px.', 'ok');
+        log('Rótulo #' + (d.i + 1) + ' redimensionado para ' +
+            Math.round(p.width) + ' × ' + Math.round(p.height) + ' px (origem em ' +
+            Math.round(p.x) + ', ' + Math.round(p.y) + ').', 'ok');
+      }
+      setHint();
+      render(); updateHUD();
       return;
     }
 
@@ -668,6 +776,7 @@
     const h = {
       novo: 'Arraste na folha para criar um rótulo (largura mínima = altura do rótulo)',
       mover: 'Arraste um rótulo para reposicioná-lo dentro da folha',
+      resize: 'Arraste um canto do rótulo para aumentar ou diminuir',
       excluir: 'Clique no ponto que deseja remover',
       pan: 'Arraste para deslocar a visão · Ctrl+roda = zoom'
     }[S.ferramenta];
@@ -676,7 +785,9 @@
 
   function setTool(name) {
     S.ferramenta = (S.ferramenta === name) ? null : name;
-    ['tool-novo', 'tool-mover', 'tool-excluir', 'tool-pan'].forEach((c) => body.classList.remove(c));
+    ['tool-novo', 'tool-mover', 'tool-resize', 'tool-excluir', 'tool-pan'].forEach((c) => body.classList.remove(c));
+    canvas.style.cursor = '';
+    S.hoverCorner = null;
     if (S.ferramenta) body.classList.add('tool-' + S.ferramenta);
     document.querySelectorAll('[data-toggle]').forEach((b) => {
       b.classList.toggle('on', b.dataset.action === S.ferramenta);
@@ -899,6 +1010,80 @@
         ' conflitos).', 'ok');
   }
 
+  /* ---------------- Estatísticas do problema ----------------
+     Instância = grafo de conflitos · Solução = a que estiver aplicada
+     (gulosa ou carregada). Mostra no log e num modal.                 */
+  function kvRows(el, rows) {
+    el.innerHTML = '';
+    for (const [k, v] of rows) {
+      const div = document.createElement('div');
+      const dt = document.createElement('dt'); dt.textContent = k;
+      const dd = document.createElement('dd'); dd.textContent = String(v);
+      div.appendChild(dt);
+      div.appendChild(dd);
+      el.appendChild(div);
+    }
+  }
+
+  function mostrarEstatisticas() {
+    if (!S.pontos.length) { toast('Não há rótulos — carregue uma instância primeiro!', 'warn', 5500); return; }
+    const t0 = performance.now();
+    const st = G.estatisticasProblema(S.pontos, S.ultimaSolucao ? S.ultimaSolucao.selecoes : null);
+    const ms = Math.round(performance.now() - t0);
+
+    kvRows($('epInstancia'), [
+      ['Pontos', st.pontos],
+      ['Vértices (4×)', st.vertices],
+      ['Arestas (conflitos)', st.arestas],
+      ['Densidade', (st.densidade * 100).toFixed(2) + ' %'],
+      ['Grau médio', st.grauMedio.toFixed(2)],
+      ['Grau máx / mín', st.grauMax + ' / ' + st.grauMin],
+      ['Vértices isolados', st.isolados],
+      ['Componentes conexas', st.componentes],
+      ['Conf. incidentes q0', st.confPorQuadrante[0] + '  (sup. dir.)'],
+      ['Conf. incidentes q1', st.confPorQuadrante[1] + '  (sup. esq.)'],
+      ['Conf. incidentes q2', st.confPorQuadrante[2] + '  (inf. esq.)'],
+      ['Conf. incidentes q3', st.confPorQuadrante[3] + '  (inf. dir.)']
+    ]);
+
+    const solWrap = $('epSolucaoWrap');
+    const semSol = $('epSemSolucao');
+    if (st.solucao) {
+      solWrap.hidden = false;
+      semSol.hidden = true;
+      kvRows($('epSolucao'), [
+        ['Conflitos restantes', st.solucao.conflitos],
+        ['Rótulos em conflito', st.solucao.rotulosEmConflito],
+        ['Pontos sem conflito', st.solucao.pontosSemConflito + ' de ' + st.pontos],
+        ['Pior ponto', '#' + (st.solucao.piorPonto.i + 1) + ' — ' +
+                        st.solucao.piorPonto.conflitos + ' conflito(s)'],
+        ['Quadrantes na solução',
+          'q0: ' + st.solucao.porQuadrante[0] + '   q1: ' + st.solucao.porQuadrante[1] +
+          '   q2: ' + st.solucao.porQuadrante[2] + '   q3: ' + st.solucao.porQuadrante[3]]
+      ]);
+    } else {
+      solWrap.hidden = true;
+      semSol.hidden = false;
+    }
+
+    openModal('modalStats');
+
+    log('Estatísticas da instância: ' + st.pontos + ' pontos · ' + st.vertices +
+        ' vértices · ' + st.arestas + ' arestas · densidade ' +
+        (st.densidade * 100).toFixed(2) + '%', 'ok');
+    log('Grau médio ' + st.grauMedio.toFixed(2) + ' · máx ' + st.grauMax + ' · mín ' +
+        st.grauMin + ' · isolados ' + st.isolados + ' · ' + st.componentes +
+        ' componente(s) · ' + ms + ' ms', 'ok');
+    if (st.solucao) {
+      log('Estatísticas da solução: ' + st.solucao.conflitos + ' conflitos · ' +
+          st.solucao.rotulosEmConflito + ' rótulos em conflito · ' +
+          st.solucao.pontosSemConflito + '/' + st.pontos + ' pontos sem conflito',
+          st.solucao.conflitos === 0 ? 'ok' : 'warn');
+    } else {
+      log('Estatísticas: nenhuma solução aplicada — gere a gulosa ou carregue uma.', 'warn');
+    }
+  }
+
   /* ===================== GERAÇÃO ALEATÓRIA ===================== */
   function gerarAleatorios(qtd, adicionar) {
     if (!adicionar) S.pontos = [];
@@ -991,6 +1176,7 @@
   const ACTIONS = {
     novo: () => setTool('novo'),
     mover: () => setTool('mover'),
+    resize: () => setTool('resize'),
     excluir: () => setTool('excluir'),
     pan: () => setTool('pan'),
 
@@ -1020,6 +1206,7 @@
     salvarGrafo,
     guloso: gerarGuloso,
     salvarSolucao,
+    estatisticas: mostrarEstatisticas,
     statsConflitos: calcularConflitos,
     desenharGrafo: () => pedirArquivo('.txt', desenharGrafo),
     carregarSolucao: () => pedirArquivo('.txt,.sol,.solucao', carregarSolucao),
@@ -1315,6 +1502,7 @@
     switch (k) {
       case 'n': setTool('novo'); break;
       case 'm': setTool('mover'); break;
+    case 'r': setTool('resize'); break;
       case 'x': setTool('excluir'); break;
       case 'delete': case 'backspace': setTool('excluir'); break;
       case 'f': fit(); break;
