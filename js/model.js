@@ -273,8 +273,94 @@
     return out;
   }
 
+  /* ---------------- Solução gulosa ----------------
+     Escolhe 1 das 4 quadrantes de cada ponto minimizando os conflitos:
+       1) gera o grafo de conflitos (mesma definição do C#)
+       2) a cada passo, escolhe o vértice (ponto ainda não escolhido ×
+          quadrante) com MENOS conflitos contra os vértices já escolhidos;
+          empates: menor grau total, depois menor id de vértice
+       3) refinamento local: enquanto existir um ponto cujo quadrante
+          escolhido possa ser trocado reduzindo o nº de conflitos, troca   */
+  function solucaoGulosa(pontos) {
+    const N = pontos.length;
+    const res = gerarGrafoConflitos(pontos);
+    const n = res.n;
+    const adj = res.adj;
+
+    // lista de adjacência (para incrementos O(grau))
+    const viz = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const arr = [];
+      for (let j = 0; j < n; j++) if (adj[i][j]) arr.push(j);
+      viz[i] = arr;
+    }
+    const grau = viz.map((a) => a.length);
+    const confl = new Int32Array(n);   // conflitos contra os já escolhidos
+
+    const sel = new Array(N).fill(-1); // quadrante escolhido por ponto
+    for (let iter = 0; iter < N; iter++) {
+      let best = null;
+      for (let i = 0; i < N; i++) {
+        if (sel[i] !== -1) continue;
+        for (let k = 0; k < 4; k++) {
+          const v = i * 4 + k, c = confl[v];
+          if (!best || c < best.c ||
+              (c === best.c && grau[v] < best.grau) ||
+              (c === best.c && grau[v] === best.grau && v < best.v)) {
+            best = { i, k, v, c, grau: grau[v] };
+          }
+        }
+      }
+      sel[best.i] = best.k;
+      for (const u of viz[best.v]) confl[u]++;
+    }
+
+    // refinamento local: troca de quadrante que reduz conflitos
+    let trocou = true;
+    while (trocou) {
+      trocou = false;
+      for (let i = 0; i < N; i++) {
+        const atual = i * 4 + sel[i];
+        for (let k = 0; k < 4; k++) {
+          if (k === sel[i]) continue;
+          const v = i * 4 + k;
+          if (confl[v] < confl[atual]) {
+            for (const u of viz[atual]) confl[u]--;
+            sel[i] = k;
+            for (const u of viz[v]) confl[u]++;
+            trocou = true;
+            break;
+          }
+        }
+      }
+    }
+
+    // métricas sobre o conjunto escolhido
+    const escolhido = [];
+    for (let i = 0; i < N; i++) escolhido.push(i * 4 + sel[i]);
+    let numConflitos = 0;
+    const emConflito = new Set();
+    for (let a = 0; a < escolhido.length; a++) {
+      for (let b = a + 1; b < escolhido.length; b++) {
+        if (adj[escolhido[a]][escolhido[b]]) {
+          numConflitos++;
+          emConflito.add(escolhido[a]);
+          emConflito.add(escolhido[b]);
+        }
+      }
+    }
+
+    return {
+      selecoes: sel,                    // quadrante (0..3) por ponto
+      numConflitos: numConflitos,       // conflitos restantes na solução
+      numRotConflitos: emConflito.size, // rótulos escolhidos que conflitam
+      vertices: n
+    };
+  }
+
   global.GDC = {
     Rotulo, Ponto, randomCor, corHSLtoRGB,
-    gerarGrafoConflitos, grafoParaTexto, arestasParaSegmentos, adjParaArestas
+    gerarGrafoConflitos, grafoParaTexto, arestasParaSegmentos, adjParaArestas,
+    solucaoGulosa
   };
 })(typeof window !== 'undefined' ? window : globalThis);

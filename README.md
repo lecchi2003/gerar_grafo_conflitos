@@ -47,6 +47,8 @@ web/
 | Gerar Grafo de Conflitos | ✔ desenha **em tela** (não salva); **Salvar grafo** exporta o `.txt` |
 | Desenhar Grafo | ✔ carrega `.txt`, desenha arestas em vermelho |
 | Carregar Solução | ✔ aplica seleções e entra no modo **Solução** |
+| Solução Gulosa | ✔ **Solução gulosa** gera uma solução viável na tela (HUD mostra os conflitos restantes) |
+| Salvar Solução | ✔ **Salvar solução** exporta `.txt` no formato aceito por Carregar solução |
 | Visualizar / Solução Colorido | ✔ modos `Tudo` (`1`), `Solução` (`2`), `Colorido` (`3`) |
 | Configurações | ✔ folha, rótulo, fonte, vértice, linha + atualizar existentes |
 | Rótulos Aleatórios | ✔ quantidade + "adicionar ao já existente" |

@@ -201,6 +201,26 @@
     return { vertices: vertices, arestas: arestas, arestasHeader: arestasHeader, verticesHeader: verticesHeader };
   }
 
-  global.GDCIO = { parseRot, serializeRot, parseSolucao, parseGrafo, grafoParaTexto: null, parseNum, linhas };
+  /* Serializa a solução no mesmo layout lido por parseSolucao:
+       linha 0  → rótulo (ignorada na leitura)
+       linha 1  → número de conflitos
+       linha 2  → rótulo (ignorada)
+       linha 3  → número de rótulos em conflito
+       linha 4  → rótulo (ignorada)
+       linhas 5+ → um vértice (1-based: i*4 + quadrante + 1) por ponto   */
+  function serializeSolucao(sol) {
+    const out = [];
+    out.push('Solucao Gulosa');
+    out.push(String(sol.numConflitos));
+    out.push('Rotulos em conflito:');
+    out.push(String(sol.numRotConflitos));
+    out.push('Vertices escolhidos:');
+    for (let i = 0; i < sol.selecoes.length; i++) {
+      out.push(String(i * 4 + sol.selecoes[i] + 1));
+    }
+    return out.join(CRLF);
+  }
+
+  global.GDCIO = { parseRot, serializeRot, parseSolucao, parseGrafo, serializeSolucao, grafoParaTexto: null, parseNum, linhas };
   global.GDCIO.grafoParaTexto = global.GDC ? global.GDC.grafoParaTexto : null;
 })(typeof window !== 'undefined' ? window : globalThis);

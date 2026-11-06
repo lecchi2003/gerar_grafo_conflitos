@@ -35,6 +35,7 @@
     mapaOpacidade: 1,
     mapaModo: 'cobrir',      // cobrir | ajustar | estender | central | ladrilho
     textoGrafo: null,        // último .txt gerado/carregado (para salvar)
+    ultimaSolucao: null,     // {selecoes, numConflitos, numRotConflitos, nome} — gulosa ou carregada
     moverSemConfirmar: (function () {
       try { return localStorage.getItem('gdc.mover.semConfirmar') === '1'; }
       catch (e) { return false; }
@@ -136,7 +137,7 @@
       p.cor = q.c; p.fontSize = S.tam_fonte;
       return p;
     });
-    S.arestas = null; S.segs = null; S.textoGrafo = null;
+    S.arestas = null; S.segs = null; S.textoGrafo = null; S.ultimaSolucao = null;
     if (S.modo === 'grafo') S.modo = 'normal';
     applyCanvasSize();
     updateHUD();
@@ -752,7 +753,7 @@
       p.cor = G.randomCor();
       return p;
     });
-    S.arestas = null; S.segs = null; S.ultimoConflito = null; S.textoGrafo = null;
+    S.arestas = null; S.segs = null; S.ultimoConflito = null; S.textoGrafo = null; S.ultimaSolucao = null;
     if (S.modo === 'grafo') setMode('normal'); else render();
     applyCanvasSize(); updateHUD();
     toast('Arquivo carregado!\nClique em visualizar!', 'ok', 5000);
@@ -846,6 +847,12 @@
     }
     pushHistory();
     sol.selecoes.forEach((s, i) => { S.pontos[i].selecionado = s; });
+    S.ultimaSolucao = {
+      selecoes: sol.selecoes.slice(),
+      numConflitos: sol.numConflitos,
+      numRotConflitos: sol.numRotConflitos,
+      nome: 'solucao.txt'
+    };
     S.modo = 'solucao';
     document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === 'solucao'));
     render(); updateHUD();
@@ -853,6 +860,43 @@
           '.\nNúmero de Rótulos em Conflito: ' + sol.numRotConflitos + '.', 'ok', 7000);
     log(nome + ' aplicado — ' + sol.numConflitos + ' conflitos.', 'ok');
     if (sol.foraFaixa) toast(sol.foraFaixa + ' valor(es) fora da faixa 1..4 foram ajustados.', 'warn', 6000);
+  }
+
+  function gerarGuloso() {
+    if (!S.pontos.length) { toast('Não há rótulos — carregue uma instância primeiro!', 'warn', 5500); return; }
+    const t0 = performance.now();
+    const sol = G.solucaoGulosa(S.pontos);
+    const ms = Math.round(performance.now() - t0);
+
+    pushHistory();
+    sol.selecoes.forEach((s, i) => { S.pontos[i].selecionado = s; });
+    S.ultimaSolucao = {
+      selecoes: sol.selecoes.slice(),
+      numConflitos: sol.numConflitos,
+      numRotConflitos: sol.numRotConflitos,
+      nome: 'solucao_gulosa.txt'
+    };
+    S.ultimoConflito = sol.numConflitos;   // HUD passa a mostrar os conflitos da solução
+    S.modo = 'solucao';
+    document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === 'solucao'));
+    render(); updateHUD();
+    toast('Solução gulosa gerada!\nConflitos: ' + sol.numConflitos +
+          '\nRótulos em conflito: ' + sol.numRotConflitos +
+          '\nTempo: ' + ms + ' ms', sol.numConflitos === 0 ? 'ok' : 'warn', 6500);
+    log('Solução gulosa: ' + sol.numConflitos + ' conflitos · ' +
+        sol.numRotConflitos + ' rótulos em conflito · ' + ms + ' ms',
+        sol.numConflitos === 0 ? 'ok' : 'warn');
+  }
+
+  function salvarSolucao() {
+    if (!S.ultimaSolucao) {
+      toast('Nenhuma solução gerada ou carregada ainda!\nUse "Solução gulosa" ou "Carregar solução".', 'warn', 5500);
+      return;
+    }
+    baixar(S.ultimaSolucao.nome, IO.serializeSolucao(S.ultimaSolucao));
+    toast('Arquivo da solução salvo!', 'ok');
+    log('Solução salva (' + S.ultimaSolucao.nome + ' · ' + S.ultimaSolucao.numConflitos +
+        ' conflitos).', 'ok');
   }
 
   /* ===================== GERAÇÃO ALEATÓRIA ===================== */
@@ -872,7 +916,7 @@
       p.cor = G.randomCor();
       S.pontos.push(p);
     }
-    S.arestas = null; S.segs = null; S.ultimoConflito = null; S.textoGrafo = null;
+    S.arestas = null; S.segs = null; S.ultimoConflito = null; S.textoGrafo = null; S.ultimaSolucao = null;
     render(); updateHUD();
     toast(qtd + ' rótulo(s) gerado(s) — total: ' + S.pontos.length + '.', 'ok');
     log('Gerados ' + qtd + ' rótulos aleatórios' + (adicionar ? ' (acrescidos).' : ' (novo conjunto).'), 'ok');
@@ -955,7 +999,7 @@
       confirmar('Limpar todos os pontos da folha?', 'Novo mapa').then((ok) => {
         if (!ok) return;
         pushHistory();
-        S.pontos = []; S.arestas = null; S.segs = null; S.ultimoConflito = null; S.textoGrafo = null;
+        S.pontos = []; S.arestas = null; S.segs = null; S.ultimoConflito = null; S.textoGrafo = null; S.ultimaSolucao = null;
         if (S.modo === 'grafo') setMode('normal');
         render(); updateHUD();
         toast('Novo mapa criado.', 'ok');
@@ -974,6 +1018,8 @@
 
     gerarConflitos,
     salvarGrafo,
+    guloso: gerarGuloso,
+    salvarSolucao,
     statsConflitos: calcularConflitos,
     desenharGrafo: () => pedirArquivo('.txt', desenharGrafo),
     carregarSolucao: () => pedirArquivo('.txt,.sol,.solucao', carregarSolucao),

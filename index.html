@@ -118,6 +118,10 @@
             <span class="led"></span><svg><use href="#ic-grafo"/></svg><b>Gerar conflitos</b></button>
           <button class="ctl" data-action="desenharGrafo" title="Desenhar Grafo — carregar .txt">
             <span class="led"></span><svg><use href="#ic-desenhar"/></svg><b>Desenhar grafo</b></button>
+          <button class="ctl" data-action="guloso" title="Solução gulosa — encontra uma solução viável na tela">
+            <span class="led"></span><svg><use href="#ic-dado"/></svg><b>Solução gulosa</b></button>
+          <button class="ctl" data-action="salvarSolucao" title="Salvar a última solução (gerada ou carregada) em .txt">
+            <span class="led"></span><svg><use href="#ic-salvar"/></svg><b>Salvar solução</b></button>
           <button class="ctl" data-action="carregarSolucao" title="Carregar Solução">
             <span class="led"></span><svg><use href="#ic-solucao"/></svg><b>Carregar solução</b></button>
           <button class="ctl" data-action="statsConflitos" title="Calcular conflitos sem exportar">
@@ -247,6 +251,9 @@
   <button role="menuitem" data-action="novoMapa"><svg><use href="#ic-novomapa"/></svg>Novo mapa</button>
   <button role="menuitem" data-action="mapa"><svg><use href="#ic-mapa"/></svg>Carregar mapa de fundo...</button>
   <button role="menuitem" data-action="mapaRemover" id="ctxMapaRemover" hidden><svg><use href="#ic-fechar"/></svg>Remover mapa de fundo</button>
+  <button role="menuitem" data-action="guloso"><svg><use href="#ic-dado"/></svg>Solução gulosa (gerar e visualizar)</button>
+  <button role="menuitem" data-action="salvarSolucao"><svg><use href="#ic-salvar"/></svg>Salvar solução (.txt)</button>
+  <button role="menuitem" data-action="carregarSolucao"><svg><use href="#ic-solucao"/></svg>Carregar solução...</button>
   <button role="menuitem" data-action="statsConflitos"><svg><use href="#ic-grafo"/></svg>Calcular conflitos</button>
   <button role="menuitem" data-action="salvarGrafo"><svg><use href="#ic-salvar"/></svg>Salvar grafo gerado (.txt)</button>
   <button role="menuitem" data-action="export"><svg><use href="#ic-export"/></svg>Exportar PNG</button>
@@ -388,6 +395,19 @@
             <li>Para exportar o arquivo, use <b>Salvar grafo</b> (painel de controle ou botão
                 direito) — vale tanto para o grafo <b>gerado</b> quanto para um <b>carregado</b>.</li>
             <li><b>Calcular</b> mostra apenas os números, sem gerar arquivo.</li>
+          </ul>
+
+          <h4>Solução gulosa</h4>
+          <ul class="file-formats">
+            <li><b>Solução gulosa</b> encontra uma solução viável na hora: escolhe a
+                quadrante de cada ponto com menos conflitos contra os já escolhidos
+                (empates: menor número de conflitos totais) e depois faz um
+                refinamento local trocando quadrantes enquanto isso reduz os conflitos.</li>
+            <li>A solução é <b>desenhada na tela</b> (modo <i>Solução</i>) e o HUD passa a
+                mostrar o nº de <b>conflitos restantes</b>. Dá <b>Ctrl+Z</b> para desfazer.</li>
+            <li>Para exportar, use <b>Salvar solução</b> — gera um <code>.txt</code> no mesmo
+                formato aceito por <b>Carregar solução</b> (destrincha: nº de conflitos, nº de
+                rótulos em conflito e um vértice por ponto).</li>
           </ul>
 
           <h4>Mover pontos</h4>
