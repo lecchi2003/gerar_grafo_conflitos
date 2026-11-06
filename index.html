@@ -185,11 +185,6 @@
     <div class="vp-hud tr"><span class="chip dim" id="vpSheet">800 × 600 px</span></div>
     <div class="vp-hud bl"><span class="chip dim" id="vpCoords">X 0000 · Y 0000</span></div>
 
-    <div class="minimap" id="minimapBox" title="Clique para navegar">
-      <canvas id="minimap" width="196" height="148"></canvas>
-      <span class="mm-label">MAPA</span>
-    </div>
-
     <div class="crosshair" id="crosshair" hidden></div>
 
     <div class="drop-hint" id="dropHint" hidden>Solte <b>.rot</b> · <b>.txt</b> · <b>.sol</b> · <b>.png/.jpg</b> (mapa)</div>
@@ -230,6 +225,13 @@
         <div class="panel-actions">
           <button class="btn ghost sm" data-action="config">Configurações</button>
           <button class="btn ghost sm" data-action="aleatorios">Aleatórios</button>
+        </div>
+      </section>
+
+      <section class="pblock">
+        <h4>Minimap</h4>
+        <div class="minimap" id="minimapBox" title="Clique para navegar pela folha">
+          <canvas id="minimap" width="196" height="148"></canvas>
         </div>
       </section>
 

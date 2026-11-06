@@ -396,7 +396,7 @@ kbd{
 .viewport{ grid-column:1; grid-row:2; }
 
 /* todos os overlays ocupam a MESMA célula do viewport */
-.vp-hud, .minimap, .crosshair, .drop-hint, .empty-state{
+.vp-hud, .crosshair, .drop-hint, .empty-state{
   grid-column:1; grid-row:2; z-index:5; pointer-events:none;
 }
 
@@ -487,12 +487,14 @@ input[type=range]::-moz-range-thumb{
 
 .stage{
   position:relative; z-index:1;
-  display:block; width:max-content; min-width:100%; min-height:100%;
+  display:flex;
+  width:max-content; min-width:100%; min-height:100%;
+  box-sizing:border-box;
   padding:56px;
 }
 
 #canvas{
-  display:block; background:#fff;
+  display:block; background:#fff; margin:auto;
   box-shadow:
     0 0 0 1px #33456b,
     0 0 0 6px rgba(9,14,24,.9),
@@ -529,21 +531,16 @@ body.panning #canvas{ cursor:grabbing; }
 .chip.map b{ font-weight:700; max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .chip .led{ width:6px; height:6px; }
 
-/* ---------- minimapa ---------- */
+/* ---------- minimapa (no painel Monitor) ---------- */
 .minimap{
-  justify-self:end; align-self:end; z-index:7;
-  margin:0 14px 14px 0; pointer-events:auto;
-  width:196px; padding:5px 5px 3px;
+  width:180px; margin:0 auto;
+  padding:5px 5px 4px;
   background:rgba(6,11,20,.92); border:1px solid #24405e;
-  filter:drop-shadow(0 0 16px rgba(46,230,255,.28));
+  filter:drop-shadow(0 0 14px rgba(46,230,255,.22));
   clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
   cursor:crosshair;
 }
 .minimap canvas{ display:block; width:100%; height:auto; background:#060b13; }
-.mm-label{
-  display:block; text-align:center; font-family:var(--mono); font-size:8.5px;
-  letter-spacing:.3em; color:#4e6a90; margin-top:3px;
-}
 
 /* ---------- crosshair ---------- */
 .crosshair{ position:relative; justify-self:stretch; align-self:stretch; z-index:6; }
@@ -829,7 +826,6 @@ body.boot .hud-bottom{ animation:slideUp .45s .1s ease both; }
 }
 @media (max-width:720px){
   .readouts{ display:none; }
-  .minimap{ width:132px; }
   .help-grid{ grid-template-columns:1fr; }
   .shortcuts{ columns:1; }
   .strip{ gap:8px; }
