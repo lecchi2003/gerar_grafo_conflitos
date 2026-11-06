@@ -35,6 +35,10 @@
     mapaOpacidade: 1,
     mapaModo: 'cobrir',      // cobrir | ajustar | estender | central | ladrilho
     textoGrafo: null,        // último .txt gerado/carregado (para salvar)
+    moverSemConfirmar: (function () {
+      try { return localStorage.getItem('gdc.mover.semConfirmar') === '1'; }
+      catch (e) { return false; }
+    })(),                    // true = soltar o ponto move direto, sem modal
     hover: -1
   };
 
@@ -606,6 +610,14 @@
         const p = S.pontos[d.i];
         const de = '(' + Math.round(d.orig.x) + ', ' + Math.round(d.orig.y) + ')';
         const para = '(' + Math.round(p.x) + ', ' + Math.round(p.y) + ')';
+        if (S.moverSemConfirmar) {
+          // check "não perguntar" no botão Mover: move direto
+          commit(d.before);
+          toast('Ponto #' + (d.i + 1) + ' movido para ' + para + '.', 'ok');
+          log('Ponto #' + (d.i + 1) + ' movido ' + de + ' → ' + para + ' (sem confirmação).', 'ok');
+          render(); updateHUD();
+          return;
+        }
         confirmar('Mover o ponto #' + (d.i + 1) + ' ?\n\nDe: ' + de + '\nPara: ' + para +
                   '\n\nConfirma o deslocamento?', 'Confirmar movimento')
           .then((ok) => {
@@ -972,6 +984,7 @@
      evitando que um duplo clique ligue e desligue na sequência.          */
   let lastToggle = { name: null, t: 0 };
   document.addEventListener('click', (e) => {
+    if (e.target.closest('.mover-check')) return;   // check "não perguntar" trata sozinho
     const el = e.target.closest('[data-action]');
     if (!el) return;
     const nome = el.dataset.action;
@@ -988,6 +1001,37 @@
     if (fn) { e.preventDefault(); fn(el); }
     hideCtx();
   });
+
+  /* ---- check "não perguntar ao mover" no botão Mover ----
+     Marcado  → soltar o ponto move direto (sem modal)
+     Desmarc  → pergunta com o modal de confirmação              */
+  const moverCheck = $('moverCheck');
+  function setMoverCheck(v, anunciar) {
+    S.moverSemConfirmar = !!v;
+    moverCheck.setAttribute('aria-checked', S.moverSemConfirmar ? 'true' : 'false');
+    try { localStorage.setItem('gdc.mover.semConfirmar', S.moverSemConfirmar ? '1' : '0'); } catch (e) { /* sem persistência */ }
+    if (anunciar) {
+      log(S.moverSemConfirmar
+        ? 'Mover: confirmação DESATIVADA — pontos movem direto.'
+        : 'Mover: confirmação ATIVADA — pergunta antes de mover.', 'ok');
+      toast(S.moverSemConfirmar
+        ? 'Mover sem perguntar: ativado.'
+        : 'Mover sem perguntar: desativado — volta a perguntar.', 'ok', 3500);
+    }
+  }
+  moverCheck.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMoverCheck(!S.moverSemConfirmar, true);
+  });
+  moverCheck.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      setMoverCheck(!S.moverSemConfirmar, true);
+    }
+  });
+  setMoverCheck(S.moverSemConfirmar, false);   // aplica estado persistido na UI
 
   /* ===================== CONFIGURAÇÕES ===================== */
   function abrirConfig() {

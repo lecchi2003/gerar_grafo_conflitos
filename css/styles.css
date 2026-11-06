@@ -266,6 +266,24 @@ kbd{
 .ctl.on svg{ filter:drop-shadow(0 0 6px var(--cyan)); }
 .ctl.on .led{ background:var(--lime); box-shadow:0 0 9px var(--lime); animation:pulse 1.2s ease-in-out infinite; }
 
+/* check "não perguntar ao mover" — canto superior direito do botão Mover */
+.mover-check{
+  position:absolute; top:4px; right:4px;
+  width:15px; height:15px;
+  display:grid; place-items:center;
+  background:#060b13; border:1px solid #2a3a5c;
+  clip-path:polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+  color:transparent; cursor:pointer; transition:.14s;
+}
+.mover-check svg{ width:10px; height:10px; }
+.mover-check:hover{ border-color:var(--cyan); box-shadow:0 0 8px -2px var(--cyan); }
+.mover-check:focus-visible{ outline:1px solid var(--cyan); outline-offset:2px; }
+.mover-check[aria-checked="true"]{
+  background:var(--cyan); border-color:var(--cyan); color:#032028;
+  box-shadow:0 0 10px -2px var(--cyan), inset 0 0 6px rgba(255,255,255,.35);
+}
+.mover-check[aria-checked="true"]:hover{ box-shadow:0 0 12px -1px var(--cyan), inset 0 0 6px rgba(255,255,255,.35); }
+
 .ctl.danger.on{
   background:linear-gradient(180deg, rgba(255,77,109,.22), rgba(255,77,109,.07));
   border-color:var(--rose);

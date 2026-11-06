@@ -83,7 +83,13 @@
           <button class="ctl" data-action="novo" data-toggle="1" title="Novo ponto — clique e arraste (N)">
             <span class="led"></span><svg><use href="#ic-novo"/></svg><b>Novo ponto</b><kbd>N</kbd></button>
           <button class="ctl" data-action="mover" data-toggle="1" title="Mover ponto — arraste um rótulo (M)">
-            <span class="led"></span><svg><use href="#ic-mover"/></svg><b>Mover</b><kbd>M</kbd></button>
+            <span class="led"></span><svg><use href="#ic-mover"/></svg><b>Mover</b><kbd>M</kbd>
+            <span class="mover-check" id="moverCheck" role="checkbox" aria-checked="false" tabindex="0"
+                  title="Não perguntar ao mover — solta o ponto sem confirmação"
+                  aria-label="Não perguntar ao mover">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 6.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
           <button class="ctl danger" data-action="excluir" data-toggle="1" title="Excluir ponto — clique no rótulo (Del)">
             <span class="led"></span><svg><use href="#ic-excluir"/></svg><b>Excluir</b><kbd>Del</kbd></button>
           <button class="ctl" data-action="pan" data-toggle="1" title="Navegar — arraste para mover a visão (Espaço)">
@@ -378,8 +384,8 @@
           <h4>Gerar o grafo de conflitos</h4>
           <ul class="file-formats">
             <li><b>Gerar conflitos</b> calcula e <b>desenha o grafo na tela</b> (modo
-                <i>Desenhar Grafo</i>) e depois pergunta se você quer salvar o arquivo <code>.txt</code>.</li>
-            <li>Para exportar mais tarde, use <b>Salvar grafo</b> (painel de controle ou botão
+                <i>Desenhar Grafo</i>) — <b>nenhum arquivo é salvo</b>.</li>
+            <li>Para exportar o arquivo, use <b>Salvar grafo</b> (painel de controle ou botão
                 direito) — vale tanto para o grafo <b>gerado</b> quanto para um <b>carregado</b>.</li>
             <li><b>Calcular</b> mostra apenas os números, sem gerar arquivo.</li>
           </ul>
@@ -391,6 +397,8 @@
                 com alças nos cantos indicando a seleção.</li>
             <li>Ao soltar, um modal <b>confirma o deslocamento</b> mostrando as coordenadas
                 de origem e destino; <b>Cancelar</b> restaura a posição original.</li>
+            <li>Marque o <b>✓ no canto do botão Mover</b> para mover <b>sem perguntar</b>
+                (o check fica salvo entre as sessões). Desmarcado, volta a perguntar.</li>
           </ul>
 
           <h4>Atalhos de teclado</h4>
