@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gerador de Grafo de Conflitos</title>
+<link rel="icon" href="../App.ico">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="boot">
+
+<!-- ============================ ÍCONES ============================ -->
+<svg class="icon-defs" aria-hidden="true" focusable="false">
+  <symbol id="ic-novo" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M12 8.2v7.6M8.2 12h7.6"/></symbol>
+  <symbol id="ic-mover" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><path d="M12 3l-2.8 2.8M12 3l2.8 2.8M12 21l-2.8-2.8M12 21l2.8-2.8M3 12l2.8-2.8M3 12l2.8 2.8M21 12l-2.8-2.8M21 12l-2.8 2.8"/></symbol>
+  <symbol id="ic-excluir" viewBox="0 0 24 24"><path d="M4 6.5h16M9.5 6.5V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v1.5"/><path d="M6.5 6.5l.9 12.1A2 2 0 0 0 9.4 20.5h5.2a2 2 0 0 0 2-1.9l.9-12.1"/><path d="M10.3 10.5v6M13.7 10.5v6"/></symbol>
+  <symbol id="ic-novomapa" viewBox="0 0 24 24"><path d="M6 3.5h7l5 5v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z"/><path d="M13 3.5v5h5"/></symbol>
+  <symbol id="ic-abrir" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h3.6l2 2.5H19a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="ic-salvar" viewBox="0 0 24 24"><path d="M5 4.5h11l4 4v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1z"/><path d="M8 4.5v5h7v-5M8 20.5v-6h8v6"/></symbol>
+  <symbol id="ic-grafo" viewBox="0 0 24 24"><circle cx="5.5" cy="6" r="2.4"/><circle cx="18.5" cy="7.5" r="2.4"/><circle cx="12" cy="18.5" r="2.4"/><path d="M7.8 6.9l8.4.5M6.7 8.1l4.1 8.2M16.7 9.5l-3.3 6.9"/></symbol>
+  <symbol id="ic-desenhar" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="1"/><path d="M3.5 5.5l17 13M20.5 5.5l-17 13"/><circle cx="3.5" cy="5.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="20.5" cy="5.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="3.5" cy="18.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="20.5" cy="18.5" r="1.6" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="ic-solucao" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M8 12.3l2.8 2.8 5.6-5.7"/></symbol>
+  <symbol id="ic-colorido" viewBox="0 0 24 24"><path d="M12 3.2a8.8 8.8 0 1 0 .2 17.6c1.2 0 1.9-.9 1.9-1.9 0-.5-.2-.9-.5-1.3-.3-.3-.5-.7-.5-1.2 0-1 .8-1.9 1.9-1.9h1.5a5 5 0 0 0 5-5c0-4.2-4.2-7.3-9-7.3z"/><circle cx="7.6" cy="12.4" r="1.15" fill="currentColor" stroke="none"/><circle cx="9.6" cy="8.2" r="1.15" fill="currentColor" stroke="none"/><circle cx="14.6" cy="7.6" r="1.15" fill="currentColor" stroke="none"/><circle cx="7.9" cy="16.6" r="1.15" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="ic-tudo" viewBox="0 0 24 24"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.9"/></symbol>
+  <symbol id="ic-config" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="M19.4 14.6a1.6 1.6 0 0 0 .3 1.8l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a1.9 1.9 0 1 1-3.8 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3.3a1.9 1.9 0 1 1 0-3.8h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V3.3a1.9 1.9 0 1 1 3.8 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1h.2a1.9 1.9 0 1 1 0 3.8h-.1a1.6 1.6 0 0 0-1.5 1z"/></symbol>
+  <symbol id="ic-dado" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><circle cx="8.4" cy="8.4" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.6" cy="8.4" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="8.4" cy="15.6" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.6" cy="15.6" r="1.3" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="ic-ajuda" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.4 9.4a2.7 2.7 0 1 1 3.6 2.5c-.7.3-1 .8-1 1.5v.5"/><circle cx="12" cy="17.2" r="1.15" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="ic-zoom-in" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L21 21M10.5 7.6v5.8M7.6 10.5h5.8"/></symbol>
+  <symbol id="ic-zoom-out" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4L21 21M7.6 10.5h5.8"/></symbol>
+  <symbol id="ic-fit" viewBox="0 0 24 24"><path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M20 9V5.5A1.5 1.5 0 0 0 18.5 4H15M4 15v3.5A1.5 1.5 0 0 0 5.5 20H9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15"/></symbol>
+  <symbol id="ic-pan" viewBox="0 0 24 24"><path d="M18 11V6.6a1.6 1.6 0 0 0-3.2 0V11M14.8 10.4V4.9a1.6 1.6 0 0 0-3.2 0v5.5M11.6 10.6V6.2a1.6 1.6 0 0 0-3.2 0v7.2M8.4 12.6l-1.5-1.6a1.7 1.7 0 0 0-2.4 2.4l4.2 5.2A5 5 0 0 0 12.6 21h2.2a5 5 0 0 0 5-5v-5"/></symbol>
+  <symbol id="ic-grid" viewBox="0 0 24 24"><path d="M3.5 9h17M3.5 15h17M9 3.5v17M15 3.5v17"/><rect x="3.5" y="3.5" width="17" height="17" rx="1"/></symbol>
+  <symbol id="ic-mapa" viewBox="0 0 24 24"><path d="M3 6.6l6-2.6 6 2.6 6-2.6v13.1l-6 2.6-6-2.6-6 2.6z"/><path d="M9 4v13.1M15 6.6v13.1"/><circle cx="12" cy="10.4" r="1.6"/><path d="M12 12v2.2"/></symbol>
+  <symbol id="ic-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="1.5"/><circle cx="8.8" cy="9.6" r="1.6"/><path d="M4.5 17.2l4.9-4.9 3.3 3.3 3.1-3.1 4.2 4.4"/></symbol>
+  <symbol id="ic-export" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="8.6" cy="10" r="1.6"/><path d="M4.5 17.5l4.8-4.8 3.4 3.4 3-3 4 4.4"/></symbol>
+  <symbol id="ic-undo" viewBox="0 0 24 24"><path d="M8.5 7.5L4 12l4.5 4.5"/><path d="M4 12h10a5 5 0 0 1 0 10h-2.5"/></symbol>
+  <symbol id="ic-redo" viewBox="0 0 24 24"><path d="M15.5 7.5L20 12l-4.5 4.5"/><path d="M20 12H10a5 5 0 0 0 0 10h2.5"/></symbol>
+  <symbol id="ic-stats" viewBox="0 0 24 24"><path d="M3.5 20.5h17"/><path d="M6.5 20.5V12M11 20.5V5.5M15.5 20.5v-6M20 20.5V9"/></symbol>
+  <symbol id="ic-fechar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="ic-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.9" r="1.15" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="ic-limpar" viewBox="0 0 24 24"><path d="M4 17.5L13.2 8.3a2.6 2.6 0 0 1 3.7 0l1.8 1.8a2.6 2.6 0 0 1 0 3.7L11.5 21H6a2 2 0 0 1-2-2z"/><path d="M11 10.5l4.5 4.5"/></symbol>
+</svg>
+
+<div class="bg-fx" aria-hidden="true"><i class="grid"></i><i class="scan"></i><i class="glow a"></i><i class="glow b"></i></div>
+
+<!-- ============================ HEADER / HUD ============================ -->
+<header class="hud-top">
+  <div class="brand">
+    <span class="brand-mark"><svg viewBox="0 0 32 32"><rect x="3" y="4" width="11" height="9" rx="1"/><rect x="18" y="4" width="11" height="9" rx="1"/><rect x="3" y="19" width="11" height="9" rx="1"/><rect x="18" y="19" width="11" height="9" rx="1"/><path d="M14 8.5h4M8.5 13v6M23.5 13v6M14 23.5h4"/></svg></span>
+    <span class="brand-text">
+      <strong>GERADOR DE GRAFO DE CONFLITOS</strong>
+      <small><i class="led on"></i> sistema online · v2 web</small>
+    </span>
+  </div>
+
+  <div class="readouts">
+    <div class="readout"><span class="ro-label">Pontos</span><span class="ro-value" id="hudPontos">000</span></div>
+    <div class="readout"><span class="ro-label">Rótulos</span><span class="ro-value" id="hudRotulos">0000</span></div>
+    <div class="readout warn"><span class="ro-label">Conflitos</span><span class="ro-value" id="hudConflitos">—</span></div>
+    <div class="readout"><span class="ro-label">Zoom</span><span class="ro-value" id="hudZoom">100%</span></div>
+  </div>
+
+  <div class="hud-actions">
+    <button class="icon-btn" id="btnUndo" title="Desfazer (Ctrl+Z)"><svg><use href="#ic-undo"/></svg></button>
+    <button class="icon-btn" id="btnRedo" title="Refazer (Ctrl+Y)"><svg><use href="#ic-redo"/></svg></button>
+    <button class="icon-btn" id="btnExport" title="Exportar PNG"><svg><use href="#ic-export"/></svg></button>
+    <button class="icon-btn accent" id="btnAjudaHeader" title="Ajuda (F1)"><svg><use href="#ic-ajuda"/></svg></button>
+    <button class="icon-btn only-mobile" id="btnToggleSide" title="Painéis"><svg><use href="#ic-stats"/></svg></button>
+  </div>
+</header>
+
+<!-- ============================ CORPO ============================ -->
+<div class="shell">
+
+  <!-- ---------- PAINEL DE CONTROLE (esquerda) ---------- -->
+  <aside class="panel left" id="panelTools">
+    <div class="panel-head"><span class="ph-icon"><svg><use href="#ic-config"/></svg></span> Painel de controle <i class="led on"></i></div>
+
+    <div class="panel-body">
+      <section class="pblock">
+        <h4>Ferramentas</h4>
+        <div class="ctl-grid">
+          <button class="ctl" data-action="novo" data-toggle="1" title="Novo ponto — clique e arraste (N)">
+            <span class="led"></span><svg><use href="#ic-novo"/></svg><b>Novo ponto</b><kbd>N</kbd></button>
+          <button class="ctl" data-action="mover" data-toggle="1" title="Mover ponto — arraste um rótulo (M)">
+            <span class="led"></span><svg><use href="#ic-mover"/></svg><b>Mover</b><kbd>M</kbd></button>
+          <button class="ctl danger" data-action="excluir" data-toggle="1" title="Excluir ponto — clique no rótulo (Del)">
+            <span class="led"></span><svg><use href="#ic-excluir"/></svg><b>Excluir</b><kbd>Del</kbd></button>
+          <button class="ctl" data-action="pan" data-toggle="1" title="Navegar — arraste para mover a visão (Espaço)">
+            <span class="led"></span><svg><use href="#ic-pan"/></svg><b>Navegar</b><kbd>␣</kbd></button>
+        </div>
+      </section>
+
+      <section class="pblock">
+        <h4>Arquivo</h4>
+        <div class="ctl-grid">
+          <button class="ctl" data-action="novoMapa" title="Novo mapa — limpar tudo">
+            <span class="led"></span><svg><use href="#ic-novomapa"/></svg><b>Novo mapa</b></button>
+          <button class="ctl" data-action="abrir" title="Abrir arquivo .rot (Ctrl+O)">
+            <span class="led"></span><svg><use href="#ic-abrir"/></svg><b>Abrir .rot</b></button>
+          <button class="ctl" data-action="salvar" title="Salvar arquivo .rot (Ctrl+S)">
+            <span class="led"></span><svg><use href="#ic-salvar"/></svg><b>Salvar .rot</b></button>
+          <button class="ctl" data-action="exemplo" title="Carregar conjunto de exemplo">
+            <span class="led"></span><svg><use href="#ic-info"/></svg><b>Exemplo</b></button>
+        </div>
+      </section>
+
+      <section class="pblock">
+        <h4>Análise</h4>
+        <div class="ctl-grid">
+          <button class="ctl" data-action="gerarConflitos" title="Gerar Grafo de Conflitos (.txt)">
+            <span class="led"></span><svg><use href="#ic-grafo"/></svg><b>Gerar conflitos</b></button>
+          <button class="ctl" data-action="desenharGrafo" title="Desenhar Grafo — carregar .txt">
+            <span class="led"></span><svg><use href="#ic-desenhar"/></svg><b>Desenhar grafo</b></button>
+          <button class="ctl" data-action="carregarSolucao" title="Carregar Solução">
+            <span class="led"></span><svg><use href="#ic-solucao"/></svg><b>Carregar solução</b></button>
+          <button class="ctl" data-action="statsConflitos" title="Calcular conflitos sem exportar">
+            <span class="led"></span><svg><use href="#ic-stats"/></svg><b>Calcular</b></button>
+          <button class="ctl" data-action="salvarGrafo" title="Salvar o último grafo gerado/carregado (.txt)">
+            <span class="led"></span><svg><use href="#ic-salvar"/></svg><b>Salvar grafo</b></button>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <!-- ---------- VISÃO / VIEWPORT ---------- -->
+  <section class="viewport-wrap">
+    <div class="strip">
+      <div class="strip-group modes" role="group" aria-label="Modos de visualização">
+        <span class="strip-label">Visão</span>
+        <button class="seg" data-action="mostrarTudo" data-mode="normal" title="Mostrar tudo"><svg><use href="#ic-tudo"/></svg>Tudo</button>
+        <button class="seg" data-action="visualizarSolucao" data-mode="solucao" title="Visualizar Solução"><svg><use href="#ic-solucao"/></svg>Solução</button>
+        <button class="seg" data-action="visualizarColorido" data-mode="colorido" title="Visualizar Solução - Colorido"><svg><use href="#ic-colorido"/></svg>Colorido</button>
+      </div>
+
+      <div class="strip-group" role="group" aria-label="Exibição">
+        <span class="strip-label">Folha</span>
+        <button class="seg" id="btnGrid" data-on="1" title="Mostrar/ocultar grade"><svg><use href="#ic-grid"/></svg>Grade</button>
+        <button class="seg" data-action="mapa" id="btnMapa" title="Carregar imagem de fundo (mapa, planta, foto)"><svg><use href="#ic-mapa"/></svg>Mapa</button>
+      </div>
+
+      <div class="map-bar" id="mapBar" hidden role="group" aria-label="Mapa de fundo">
+        <svg class="mb-icon"><use href="#ic-image"/></svg>
+        <span class="mb-label" title="Opacidade do mapa">α</span>
+        <input type="range" id="mapOpacity" min="10" max="100" value="100" step="5" title="Opacidade do mapa de fundo">
+        <button class="icon-btn sm" id="btnMapaRemover" title="Remover mapa de fundo"><svg><use href="#ic-fechar"/></svg></button>
+      </div>
+
+      <div class="strip-spacer"></div>
+
+      <div class="zoom-bar" role="group" aria-label="Zoom">
+        <button class="icon-btn sm" id="btnZoomOut" title="Diminuir zoom (Ctrl + −)"><svg><use href="#ic-zoom-out"/></svg></button>
+        <input type="range" id="zoomRange" min="10" max="400" value="100" step="5" title="Arraste para dar zoom">
+        <button class="icon-btn sm" id="btnZoomIn" title="Aumentar zoom (Ctrl + +)"><svg><use href="#ic-zoom-in"/></svg></button>
+        <button class="icon-btn sm" id="btnZoom100" title="Zoom 100%">1:1</button>
+        <button class="icon-btn sm" id="btnFit" title="Ajustar folha à janela (F)"><svg><use href="#ic-fit"/></svg></button>
+      </div>
+    </div>
+
+    <div class="viewport" id="viewport" tabindex="0">
+      <div class="stage" id="stage"><canvas id="canvas" width="800" height="600"></canvas></div>
+    </div>
+
+    <!-- ===== overlays (mesma célula de grade do viewport) ===== -->
+    <div class="vp-hud tl">
+      <span class="chip"><i class="led on"></i><b id="vpMode">MOSTRAR TUDO</b></span>
+      <span class="chip dim" id="vpTool">FERRAMENTA: NENHUMA</span>
+      <span class="chip dim map" id="vpMapa" hidden><svg><use href="#ic-image"/></svg><b id="vpMapaNome">MAPA</b></span>
+    </div>
+    <div class="vp-hud tr"><span class="chip dim" id="vpSheet">800 × 600 px</span></div>
+    <div class="vp-hud bl"><span class="chip dim" id="vpCoords">X 0000 · Y 0000</span></div>
+
+    <div class="minimap" id="minimapBox" title="Clique para navegar">
+      <canvas id="minimap" width="196" height="148"></canvas>
+      <span class="mm-label">MAPA</span>
+    </div>
+
+    <div class="crosshair" id="crosshair" hidden></div>
+
+    <div class="drop-hint" id="dropHint" hidden>Solte <b>.rot</b> · <b>.txt</b> · <b>.sol</b> · <b>.png/.jpg</b> (mapa)</div>
+    <div class="empty-state" id="emptyState">
+      <svg viewBox="0 0 32 32"><rect x="3" y="4" width="11" height="9" rx="1"/><rect x="18" y="4" width="11" height="9" rx="1"/><rect x="3" y="19" width="11" height="9" rx="1"/><rect x="18" y="19" width="11" height="9" rx="1"/><path d="M14 8.5h4M8.5 13v6M23.5 13v6M14 23.5h4"/></svg>
+      <p><b>SEM DADOS NA FOLHA</b></p>
+      <p class="es-sub">Ative <em>Novo ponto</em> e arraste, use <em>Aleatórios</em>,<br>carregue um <code>.rot</code> ou solte um <b>mapa de fundo</b>.</p>
+    </div>
+  </section>
+
+  <!-- ---------- MONITOR (direita) ---------- -->
+  <aside class="panel right" id="panelMonitor">
+    <div class="panel-head"><span class="ph-icon"><svg><use href="#ic-stats"/></svg></span> Monitor <i class="led on"></i></div>
+
+    <div class="panel-body">
+      <section class="pblock">
+        <h4>Telemetria</h4>
+        <div class="gauge"><div class="g-row"><span>Pontos</span><b id="stPontos">0</b></div><div class="bar"><i id="barPontos" style="width:0%"></i></div></div>
+        <div class="gauge"><div class="g-row"><span>Rótulos (4×)</span><b id="stRotulos">0</b></div><div class="bar"><i id="barRotulos" style="width:0%"></i></div></div>
+        <div class="gauge"><div class="g-row"><span>Conflitos</span><b id="stConflitos">—</b></div><div class="bar warn"><i id="barConflitos" style="width:0%"></i></div></div>
+      </section>
+
+      <section class="pblock">
+        <h4>Parâmetros</h4>
+        <dl class="kv">
+          <div><dt>Folha</dt><dd id="stFolha">800 × 600</dd></div>
+          <div><dt>Rótulo</dt><dd id="stRotulo">50 × 30</dd></div>
+          <div><dt>Fonte</dt><dd id="stFonte">8 px</dd></div>
+          <div><dt>Vértice</dt><dd id="stRaio">8 px</dd></div>
+          <div><dt>Linha</dt><dd id="stLinha">2 px</dd></div>
+          <div><dt>Modo</dt><dd id="stModo">Mostrar tudo</dd></div>
+          <div><dt>Ferramenta</dt><dd id="stFerramenta">Nenhuma</dd></div>
+          <div><dt>Zoom</dt><dd id="stZoom">100%</dd></div>
+          <div><dt>Mapa</dt><dd id="stMapa">—</dd></div>
+          <div><dt>Fundo</dt><dd id="stMapaModo">—</dd></div>
+          <div><dt>Grafo</dt><dd id="stGrafo">—</dd></div>
+        </dl>
+        <div class="panel-actions">
+          <button class="btn ghost sm" data-action="config">Configurações</button>
+          <button class="btn ghost sm" data-action="aleatorios">Aleatórios</button>
+        </div>
+      </section>
+
+      <section class="pblock grow">
+        <h4>Log de eventos</h4>
+        <div class="log" id="logList"></div>
+      </section>
+    </div>
+  </aside>
+</div>
+
+<!-- ============================ STATUS ============================ -->
+<footer class="hud-bottom">
+  <span class="sb-mode"><i class="led on"></i><b id="sbModo">MODO: MOSTRAR TUDO</b></span>
+  <span class="sb-hint" id="sbHint">Selecione uma ferramenta para começar</span>
+  <span class="sb-coords" id="sbCoords">Coordenadas: 0, 0</span>
+</footer>
+
+<!-- ============================ MENU DE CONTEXTO ============================ -->
+<div class="ctx-menu" id="ctxMenu" hidden role="menu">
+  <button role="menuitem" data-action="config"><svg><use href="#ic-config"/></svg>Configurações...</button>
+  <button role="menuitem" data-action="aleatorios"><svg><use href="#ic-dado"/></svg>Gerar Rótulos Aleatoriamente</button>
+  <hr>
+  <button role="menuitem" data-action="novoMapa"><svg><use href="#ic-novomapa"/></svg>Novo mapa</button>
+  <button role="menuitem" data-action="mapa"><svg><use href="#ic-mapa"/></svg>Carregar mapa de fundo...</button>
+  <button role="menuitem" data-action="mapaRemover" id="ctxMapaRemover" hidden><svg><use href="#ic-fechar"/></svg>Remover mapa de fundo</button>
+  <button role="menuitem" data-action="statsConflitos"><svg><use href="#ic-grafo"/></svg>Calcular conflitos</button>
+  <button role="menuitem" data-action="salvarGrafo"><svg><use href="#ic-salvar"/></svg>Salvar grafo gerado (.txt)</button>
+  <button role="menuitem" data-action="export"><svg><use href="#ic-export"/></svg>Exportar PNG</button>
+  <hr>
+  <button role="menuitem" data-action="ajuda"><svg><use href="#ic-ajuda"/></svg>Ajuda</button>
+</div>
+
+<!-- ============================ MODAIS ============================ -->
+<div class="overlay" id="overlay" hidden>
+
+  <div class="modal" id="modalConfig" hidden role="dialog" aria-modal="true" aria-labelledby="cfgTitle">
+    <header class="modal-head">
+      <span class="mh-icon"><svg><use href="#ic-config"/></svg></span>
+      <h3 id="cfgTitle">Configurações</h3>
+      <button class="icon-btn" data-close><svg><use href="#ic-fechar"/></svg></button>
+    </header>
+    <div class="modal-body">
+      <fieldset class="fset">
+        <legend><svg><use href="#ic-novo"/></svg> Dados dos Rótulo:</legend>
+        <label class="row"><span>Largura (px):</span><input type="number" id="cfgLargRot" min="1" max="2048" step="0.5"></label>
+        <label class="check"><input type="checkbox" id="cfgUpdLarg"><span>Atualizar os já existentes?</span></label>
+        <label class="row"><span>Altura (px):</span><input type="number" id="cfgAltRot" min="1" max="2048" step="0.5"></label>
+        <label class="check"><input type="checkbox" id="cfgUpdAlt"><span>Atualizar os já existentes?</span></label>
+      </fieldset>
+
+      <fieldset class="fset">
+        <legend><svg><use href="#ic-fit"/></svg> Dados da Folha:</legend>
+        <label class="row"><span>Largura (px):</span><input type="number" id="cfgLargFolha" min="100" max="2048" step="1"></label>
+        <label class="row"><span>Altura (px):</span><input type="number" id="cfgAltFolha" min="100" max="2048" step="1"></label>
+      </fieldset>
+
+      <fieldset class="fset">
+        <legend><svg><use href="#ic-tudo"/></svg> Fonte</legend>
+        <label class="row"><span>Tamanho:</span><input type="number" id="cfgFonte" min="1" max="72" step="1"></label>
+      </fieldset>
+
+      <fieldset class="fset">
+        <legend><svg><use href="#ic-grafo"/></svg> Grafo</legend>
+        <label class="row"><span>Tamanho Vértice:</span><input type="number" id="cfgRaio" min="1" max="40" step="1"></label>
+        <label class="row"><span>Largura Linha:</span><input type="number" id="cfgLinha" min="1" max="20" step="1"></label>
+      </fieldset>
+
+      <fieldset class="fset">
+        <legend><svg><use href="#ic-mapa"/></svg> Mapa de fundo</legend>
+        <label class="row"><span>Disposição:</span>
+          <select id="cfgMapaModo" title="Como a imagem de fundo se ajusta à folha">
+            <option value="cobrir">Cobrir (cortar o excesso)</option>
+            <option value="ajustar">Ajustar (ver a imagem toda)</option>
+            <option value="estender">Estender (esticar)</option>
+            <option value="central">Centralizada (tamanho real)</option>
+            <option value="ladrilho">Ladrilhar (repetir)</option>
+          </select>
+        </label>
+        <label class="row"><span>Opacidade:</span>
+          <input type="range" id="cfgMapaOpacidade" min="10" max="100" step="5" title="Transparência do mapa de fundo">
+          <b class="range-val" id="cfgMapaOpacVal">100%</b>
+        </label>
+        <p class="note">Vale para a imagem carregada com <b>Mapa</b> — igual às opções de plano de fundo do Windows.</p>
+      </fieldset>
+    </div>
+    <footer class="modal-foot">
+      <button class="btn" id="cfgPadrao"><svg><use href="#ic-limpar"/></svg> Padrão</button>
+      <span class="spacer"></span>
+      <button class="btn ghost" data-close>Cancelar</button>
+      <button class="btn primary" id="cfgOk">OK</button>
+    </footer>
+  </div>
+
+  <div class="modal small" id="modalAleatorios" hidden role="dialog" aria-modal="true" aria-labelledby="aleTitle">
+    <header class="modal-head">
+      <span class="mh-icon"><svg><use href="#ic-dado"/></svg></span>
+      <h3 id="aleTitle">Número Rótulos</h3>
+      <button class="icon-btn" data-close><svg><use href="#ic-fechar"/></svg></button>
+    </header>
+    <div class="modal-body">
+      <label class="row big"><span>Número de Rótulos:</span><input type="number" id="aleQtd" min="1" max="100000" step="1" value="100"></label>
+      <label class="check"><input type="checkbox" id="aleAdicionar" checked><span>Adicionar ao já existente?</span></label>
+      <p class="note">Os rótulos são posicionados aleatoriamente dentro da folha.</p>
+    </div>
+    <footer class="modal-foot">
+      <span class="spacer"></span>
+      <button class="btn ghost" data-close>Cancelar</button>
+      <button class="btn primary" id="aleOk">OK</button>
+    </footer>
+  </div>
+
+  <div class="modal wide" id="modalAjuda" hidden role="dialog" aria-modal="true" aria-labelledby="ajTitle">
+    <header class="modal-head">
+      <span class="mh-icon"><svg><use href="#ic-ajuda"/></svg></span>
+      <h3 id="ajTitle">Ajuda</h3>
+      <button class="icon-btn" data-close><svg><use href="#ic-fechar"/></svg></button>
+    </header>
+    <div class="modal-body help">
+      <div class="help-grid">
+        <section>
+          <h4>Sobre o programa</h4>
+          <p>Ferramenta para montar, carregar e editar <b>pontos com rótulos</b> sobre uma folha e gerar o
+             <b>grafo de conflitos</b> correspondente. Cada ponto é dividido em <b>4 rótulos</b>
+             (superior-direito, superior-esquerdo, inferior-esquerdo, inferior-direito) e os vértices do grafo
+             são numerados de <code>1</code> a <code>4 × N</code>, na ordem dos pontos.</p>
+
+          <h4>Navegação</h4>
+          <ul class="shortcuts">
+            <li><kbd>Ctrl</kbd> + <kbd>roda</kbd> — zoom onde está o cursor</li>
+            <li><kbd>Roled</kbd> / <kbd>Shift</kbd>+<kbd>roda</kbd> — rolar a folha</li>
+            <li><kbd>Botão do meio</kbd> ou <kbd>Espaço</kbd> + arrastar — deslocar a visão</li>
+            <li><kbd>F</kbd> — ajustar à janela · <kbd>0</kbd> — 100%</li>
+            <li>Minimapa no canto inferior: clique para saltar para a região</li>
+          </ul>
+
+          <h4>Mapa de fundo</h4>
+          <ul class="file-formats">
+            <li>Clique em <b>Mapa</b> na barra da folha (ou botão direito →
+                <b>Carregar mapa de fundo</b>) e escolha uma imagem (PNG, JPG, WEBP...).</li>
+            <li>A imagem fica <b>atrás dos rótulos</b> — útil para conferir a posição das
+                etiquetas sobre um mapa, planta ou foto.</li>
+            <li><b>Configurações → Mapa de fundo</b> define a <b>disposição</b>, como no
+                plano de fundo do Windows: <b>Cobrir</b> (corta o excesso),
+                <b>Ajustar</b> (vê a imagem toda), <b>Estender</b> (esticar),
+                <b>Centralizada</b> (tamanho real) e <b>Ladrilhar</b> (repetir em mosaico),
+                além da <b>opacidade</b>.</li>
+            <li>Use o controle <b>α</b> na barra para ajustar a opacidade e o <b>×</b> para remover.</li>
+            <li>Também dá para <b>arrastar a imagem</b> para a área de visão. Ela entra no <b>exportar PNG</b>.</li>
+          </ul>
+
+          <h4>Formato dos arquivos</h4>
+          <ul class="file-formats">
+            <li><b>.rot</b> — cabeçalho (folha, tamanho do rótulo, fonte) e
+                <code>x1, y1, x2, y2, selecionado</code> por ponto.</li>
+            <li><b>.txt</b> — primeira linha é o cabeçalho (<code>&lt;vértices&gt; &lt;arestas&gt; 0</code>);
+                cada linha seguinte traz <code>v vizinho1 vizinho2 ...</code>.</li>
+            <li><b>solução</b> — número de conflitos, rótulos em conflito e um vértice por ponto.</li>
+          </ul>
+
+          <h4>Gerar o grafo de conflitos</h4>
+          <ul class="file-formats">
+            <li><b>Gerar conflitos</b> calcula e <b>desenha o grafo na tela</b> (modo
+                <i>Desenhar Grafo</i>) e depois pergunta se você quer salvar o arquivo <code>.txt</code>.</li>
+            <li>Para exportar mais tarde, use <b>Salvar grafo</b> (painel de controle ou botão
+                direito) — vale tanto para o grafo <b>gerado</b> quanto para um <b>carregado</b>.</li>
+            <li><b>Calcular</b> mostra apenas os números, sem gerar arquivo.</li>
+          </ul>
+
+          <h4>Mover pontos</h4>
+          <ul class="file-formats">
+            <li>Com a ferramenta <b>Mover</b>, basta clicar <b>perto</b> do ponto
+                (10 px de tolerância) e arrastar — o ponto segue o cursor sem pular,
+                com alças nos cantos indicando a seleção.</li>
+            <li>Ao soltar, um modal <b>confirma o deslocamento</b> mostrando as coordenadas
+                de origem e destino; <b>Cancelar</b> restaura a posição original.</li>
+          </ul>
+
+          <h4>Atalhos de teclado</h4>
+          <ul class="shortcuts">
+            <li><kbd>N</kbd> novo ponto</li><li><kbd>M</kbd> mover</li>
+            <li><kbd>Del</kbd> excluir</li><li><kbd>␣</kbd> navegar</li>
+            <li><kbd>Ctrl</kbd>+<kbd>S</kbd> salvar</li><li><kbd>Ctrl</kbd>+<kbd>O</kbd> abrir</li>
+            <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> desfazer</li><li><kbd>Ctrl</kbd>+<kbd>Y</kbd> refazer</li>
+            <li><kbd>1</kbd> tudo</li><li><kbd>2</kbd> solução</li><li><kbd>3</kbd> colorido</li>
+            <li><kbd>F1</kbd> ajuda</li>
+          </ul>
+        </section>
+        <section>
+          <h4>Créditos</h4>
+          <pre class="credits">Desenvolvido por:
+Gildásio Lecchi Cravo (*)
+lecchi2003@gmail.com (*)
+
+Orientador:
+Glaydston Mattos Ribeiro (*, **)
+gmr.ribeiro@gmail.com (*)
+glaydston@lac.inpe.br (**)
+
+Co-Orientador:
+Luiz Antonio Nogueira Lorena (**)
+lorena@lac.inpe.br (**)
+
+Instituições:
+*   1Faculdade de Aracruz – UNIARACRUZ
+Departamento de Ciência da Computação e Informática
+R. Prof. Berilo Basílio dos Santos, 180, Vila Rica, Aracruz – ES. CEP 29.190-000.
+
+**    2Instituto Nacional de Pesquisas Espaciais – INPE
+Laboratório Associado de Matemática e Computação Aplicada
+Av. dos Astronautas, 1.758, Jardim da Granja, São José dos Campos – SP. CEP 12.227-010.</pre>
+        </section>
+      </div>
+    </div>
+    <footer class="modal-foot"><span class="spacer"></span><button class="btn primary" data-close>OK</button></footer>
+  </div>
+
+  <div class="modal small" id="modalConfirm" hidden role="dialog" aria-modal="true" aria-labelledby="cfTitle">
+    <header class="modal-head">
+      <span class="mh-icon warn"><svg><use href="#ic-info"/></svg></span>
+      <h3 id="cfTitle">Confirmar</h3>
+      <button class="icon-btn" data-close><svg><use href="#ic-fechar"/></svg></button>
+    </header>
+    <div class="modal-body"><p id="cfMsg"></p></div>
+    <footer class="modal-foot">
+      <span class="spacer"></span>
+      <button class="btn ghost" data-close>Cancelar</button>
+      <button class="btn primary" id="cfOk">OK</button>
+    </footer>
+  </div>
+
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<input type="file" id="fileInput" hidden>
+<input type="file" id="mapInput" accept="image/*" hidden>
+
+<script src="js/model.js"></script>
+<script src="js/io.js"></script>
+<script src="js/exemplos.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
