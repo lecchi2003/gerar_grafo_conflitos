@@ -397,8 +397,10 @@
                 com alças nos cantos indicando a seleção.</li>
             <li>Ao soltar, um modal <b>confirma o deslocamento</b> mostrando as coordenadas
                 de origem e destino; <b>Cancelar</b> restaura a posição original.</li>
-            <li>Marque o <b>✓ no canto do botão Mover</b> para mover <b>sem perguntar</b>
-                (o check fica salvo entre as sessões). Desmarcado, volta a perguntar.</li>
+            <li>Sem querer repetir o modal toda vez? Marque
+                <b>“Não mostrar mais.”</b> nele (ou o <b>✓ no canto do botão Mover</b>) —
+                o ponto passa a ser movido direto e a preferência fica salva.
+                Desmarcando o ✓, volta a perguntar.</li>
           </ul>
 
           <h4>Atalhos de teclado</h4>
@@ -446,7 +448,14 @@ Av. dos Astronautas, 1.758, Jardim da Granja, São José dos Campos – SP. CEP 
       <h3 id="cfTitle">Confirmar</h3>
       <button class="icon-btn" data-close><svg><use href="#ic-fechar"/></svg></button>
     </header>
-    <div class="modal-body"><p id="cfMsg"></p></div>
+    <div class="modal-body">
+      <p id="cfMsg"></p>
+      <label class="confirm-check" id="cfNaoMostrarWrap" hidden>
+        <input type="checkbox" id="cfNaoMostrar">
+        <span class="cc-box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 6.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="cc-text">Não mostrar mais.</span>
+      </label>
+    </div>
     <footer class="modal-foot">
       <span class="spacer"></span>
       <button class="btn ghost" data-close>Cancelar</button>

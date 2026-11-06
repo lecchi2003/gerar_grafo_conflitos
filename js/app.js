@@ -74,13 +74,23 @@
   }
 
   let confirmCb = null;
-  function confirmar(msg, titulo) {
+  function confirmar(msg, titulo, opcoes) {
     return new Promise((resolve) => {
       $('cfMsg').textContent = msg;
       $('cfTitle').textContent = titulo || 'Confirmar';
+      const mostrar = !!(opcoes && opcoes.naoMostrar);
+      $('cfNaoMostrarWrap').hidden = !mostrar;
+      $('cfNaoMostrar').checked = false;
       confirmCb = resolve;
       openModal('modalConfirm');
     });
+  }
+  /* Se o usuário marcou "Não mostrar mais.", sincroniza com o check do botão Mover */
+  function lerNaoMostrar() {
+    if ($('cfNaoMostrarWrap').hidden) return;
+    if ($('cfNaoMostrar').checked && typeof setMoverCheck === 'function') {
+      setMoverCheck(true, true);
+    }
   }
   $('cfOk').addEventListener('click', () => {
     const cb = confirmCb;
@@ -96,6 +106,7 @@
       .forEach((m) => { $(m).hidden = (m !== id); });
   }
   function closeModal() {
+    lerNaoMostrar();              // aplica "Não mostrar mais." antes de fechar
     $('overlay').hidden = true;
     if (confirmCb) { confirmCb(false); confirmCb = null; }
   }
@@ -619,7 +630,7 @@
           return;
         }
         confirmar('Mover o ponto #' + (d.i + 1) + ' ?\n\nDe: ' + de + '\nPara: ' + para +
-                  '\n\nConfirma o deslocamento?', 'Confirmar movimento')
+                  '\n\nConfirma o deslocamento?', 'Confirmar movimento', { naoMostrar: true })
           .then((ok) => {
             if (ok) {
               commit(d.before);

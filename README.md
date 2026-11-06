@@ -43,7 +43,7 @@ web/
 | Desktop | Web |
 |---|---|
 | Novo ponto (arrastar) | ✔ ferramenta **Novo ponto** (`N`) |
-| Mover / Excluir | ✔ **Mover** (`M`, com modal de confirmação — ou marque o **✓ no botão Mover** para não perguntar) / **Excluir** (`Del`) |
+| Mover / Excluir | ✔ **Mover** (`M`, com modal de confirmação — marque **“Não mostrar mais.”** no modal ou o **✓ no botão Mover** para não perguntar) / **Excluir** (`Del`) |
 | Gerar Grafo de Conflitos | ✔ desenha **em tela** (não salva); **Salvar grafo** exporta o `.txt` |
 | Desenhar Grafo | ✔ carrega `.txt`, desenha arestas em vermelho |
 | Carregar Solução | ✔ aplica seleções e entra no modo **Solução** |

@@ -291,6 +291,36 @@ kbd{
 }
 .ctl.danger.on .led{ background:var(--rose); box-shadow:0 0 9px var(--rose); }
 
+/* checkbox "Não mostrar mais." no modal de confirmação */
+.confirm-check{
+  display:flex; align-items:center; gap:9px;
+  margin-top:14px; padding:8px 10px;
+  background:#080e19; border:1px solid #1e2c4a;
+  cursor:pointer; user-select:none; transition:.14s;
+  clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.confirm-check:hover{ border-color:#33507e; background:#0a1220; }
+.confirm-check input{ position:absolute; opacity:0; width:1px; height:1px; }
+.cc-box{
+  width:16px; height:16px; flex:0 0 16px;
+  display:grid; place-items:center;
+  background:#060b13; border:1px solid #2a3a5c;
+  clip-path:polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
+  color:transparent; transition:.14s;
+}
+.cc-box svg{ width:11px; height:11px; }
+.confirm-check input:checked + .cc-box{
+  background:var(--cyan); border-color:var(--cyan); color:#032028;
+  box-shadow:0 0 10px -2px var(--cyan), inset 0 0 6px rgba(255,255,255,.35);
+}
+.confirm-check input:focus-visible + .cc-box{ outline:1px solid var(--cyan); outline-offset:2px; }
+.cc-text{
+  font-family:var(--mono); font-size:11px; letter-spacing:.08em;
+  text-transform:uppercase; color:#a9bcd9;
+}
+.confirm-check:hover .cc-text{ color:#dcebff; }
+.confirm-check input:checked ~ .cc-text{ color:#8ef2ff; }
+
 /* ---------- telemetria / gauges ---------- */
 .gauge{ margin-bottom:9px; }
 .g-row{
@@ -620,6 +650,7 @@ body.has-data .empty-state{ display:none; }
 .modal-head .icon-btn{ width:28px; height:28px; }
 
 .modal-body{ padding:16px; overflow-y:auto; min-height:0; }
+.modal-body p{ white-space:pre-line; margin:0; line-height:1.5; }
 
 .modal-foot{
   display:flex; align-items:center; gap:9px; padding:12px 15px;
